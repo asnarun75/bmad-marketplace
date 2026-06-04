@@ -1,0 +1,36 @@
+name: Daily Job Hunt
+
+on:
+  schedule:
+    - cron: "0 8 * * *"   # 8:00 AM UTC every day
+  workflow_dispatch:        # allow manual trigger from GitHub UI
+
+jobs:
+  hunt:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # needed to commit tailored resumes back
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run job hunting agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python -m job_hunter.agent
+
+      - name: Commit tailored resumes
+        run: |
+          git config user.name  "job-hunt-bot"
+          git config user.email "bot@github-actions"
+          git add job_hunter/output/
+          git diff --cached --quiet || git commit -m "chore: add tailored resumes $(date -u +%Y-%m-%d)"
+          git push origin HEAD
