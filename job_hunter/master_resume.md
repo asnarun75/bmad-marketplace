@@ -1,7 +1,7 @@
 # Master Resume
 
-**[YOUR NAME]**
-[City, State] | [phone] | [email] | [LinkedIn URL]
+Arun Arunachalam
+Jersey City, NJ | 908-330-1050| asnarun75@gmail.com | [LinkedIn URL]
 
 ---
 
