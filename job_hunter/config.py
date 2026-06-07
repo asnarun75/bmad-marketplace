@@ -3,7 +3,7 @@ User preferences — edit these before running.
 """
 
 # ── Your location ────────────────────────────────────────────────────────────
-LOCATION = "New York, NY"          # City, State (or "remote")
+LOCATION = "Jersey City, NJ"          # City, State (or "remote")
 COUNTRY  = "US"
 MAX_COMMUTE_MINUTES = 45
 
