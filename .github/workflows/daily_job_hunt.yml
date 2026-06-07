@@ -25,6 +25,8 @@ jobs:
       - name: Run job hunting agent
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ADZUNA_APP_ID:     ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_API_KEY:    ${{ secrets.ADZUNA_API_KEY }}
         run: python -m job_hunter.agent
 
       - name: Commit tailored resumes

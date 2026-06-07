@@ -2,23 +2,17 @@
 Daily job-hunting agent.
 
 Run manually:  python -m job_hunter.agent
-Runs via:      .github/workflows/daily_job_hunt.yml (scheduled)
+Runs via:      .github/workflows/daily_job_hunt.yml (scheduled daily)
 """
 
-import os
-import re
-import sys
 import logging
-from datetime import datetime, timezone, timedelta
+import sys
+from datetime import datetime
 from pathlib import Path
+import re
 
-from jobspy import scrape_jobs
-import pandas as pd
-
-from job_hunter.config import (
-    LOCATION, COUNTRY, HOURS_SINCE_POSTED, MAX_JOBS_PER_QUERY,
-    MIN_SALARY_USD, SEARCH_QUERIES, OUTPUT_DIR,
-)
+from job_hunter.config import SEARCH_QUERIES, MIN_SALARY_USD, OUTPUT_DIR
+from job_hunter.scraper import search_jobs
 from job_hunter.resume_tailor import tailor_resume
 from job_hunter.tracker import already_tracked, record_job
 
@@ -45,58 +39,41 @@ def run():
     output_dir = Path(OUTPUT_DIR)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=HOURS_SINCE_POSTED)
-    new_jobs_processed = 0
+    new_jobs = 0
 
     for query in SEARCH_QUERIES:
-        log.info("Searching: %s @ %s", query, LOCATION)
-        try:
-            jobs: pd.DataFrame = scrape_jobs(
-                site_name=["indeed", "linkedin", "glassdoor"],
-                search_term=query,
-                location=LOCATION,
-                results_wanted=MAX_JOBS_PER_QUERY,
-                hours_old=HOURS_SINCE_POSTED,
-                country_indeed=COUNTRY,
-            )
-        except Exception as exc:
-            log.warning("Scrape failed for '%s': %s", query, exc)
-            continue
+        log.info("Searching: %s", query)
+        jobs = search_jobs(query)
 
-        if jobs.empty:
+        if not jobs:
             log.info("  No results.")
             continue
 
         log.info("  Found %d listings.", len(jobs))
 
-        for _, row in jobs.iterrows():
-            job_id    = str(row.get("id") or row.get("job_url", ""))
-            title     = str(row.get("title", ""))
-            company   = str(row.get("company", ""))
-            location  = str(row.get("location", ""))
-            url       = str(row.get("job_url", ""))
-            salary    = str(row.get("min_amount") or row.get("salary_source") or "")
-            desc      = str(row.get("description", ""))
-            date_posted = row.get("date_posted")
+        for job in jobs:
+            job_id   = job["job_id"]
+            title    = job["title"]
+            company  = job["company"]
+            location = job["location"]
+            url      = job["url"]
+            desc     = job["description"]
+            sal_min  = job["salary_min"]
 
             if not job_id or not desc:
                 continue
 
-            # Skip already processed
             if already_tracked(job_id):
-                log.debug("  Skip (already tracked): %s @ %s", title, company)
+                log.debug("  Skip (seen): %s @ %s", title, company)
                 continue
 
-            # Skip if salary info available and below minimum
-            if row.get("min_amount"):
-                try:
-                    if float(row["min_amount"]) < MIN_SALARY_USD:
-                        log.debug("  Skip (salary too low): %s @ %s", title, company)
-                        continue
-                except (ValueError, TypeError):
-                    pass
+            # Skip if salary data available and below floor
+            if sal_min and sal_min < MIN_SALARY_USD:
+                log.info("  Skip (salary $%s < $%s): %s @ %s",
+                         f"{sal_min:,.0f}", f"{MIN_SALARY_USD:,.0f}", title, company)
+                continue
 
-            log.info("  Tailoring resume for: %s @ %s", title, company)
+            log.info("  Tailoring resume → %s @ %s", title, company)
             try:
                 tailored = tailor_resume(
                     master_resume=master_resume,
@@ -106,10 +83,14 @@ def run():
                     job_description=desc,
                 )
             except Exception as exc:
-                log.error("  Claude API error for %s @ %s: %s", title, company, exc)
+                log.error("  Claude API error: %s", exc)
                 continue
 
-            fname = f"{datetime.utcnow().strftime('%Y%m%d')}_{safe_filename(company)}_{safe_filename(title)}.md"
+            fname = (
+                f"{datetime.utcnow().strftime('%Y%m%d')}"
+                f"_{safe_filename(company)}"
+                f"_{safe_filename(title)}.md"
+            )
             fpath = output_dir / fname
             fpath.write_text(tailored, encoding="utf-8")
 
@@ -118,15 +99,15 @@ def run():
                 title=title,
                 company=company,
                 location=location,
-                salary=salary,
+                salary=f"{sal_min}-{job['salary_max']}",
                 url=url,
                 resume_file=str(fpath),
             )
-            log.info("  Saved: %s", fpath.name)
-            new_jobs_processed += 1
+            log.info("  Saved: %s", fname)
+            new_jobs += 1
 
-    log.info("Done. Tailored resumes for %d new job(s).", new_jobs_processed)
-    return new_jobs_processed
+    log.info("Done. Tailored %d new resume(s).", new_jobs)
+    return new_jobs
 
 
 if __name__ == "__main__":
