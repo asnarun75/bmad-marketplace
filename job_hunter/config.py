@@ -12,13 +12,20 @@ SEARCH_QUERIES = [
     "Senior Director Technology",
     "Senior Director Engineering",
     "VP Technology Financial Services",
+    "VP Engineering",
+    "Director of Technology",
+    "Managing Director Technology",
     "Head of Technology Banking",
     "Chief Architect Financial Services",
+    "Director AI Technology",
+    "Technology Vice President",
 ]
 
 # ── Filters ───────────────────────────────────────────────────────────────────
-MIN_SALARY_USD      = 285_000
-HOURS_SINCE_POSTED  = 24          # Only jobs posted in the last N hours
+# Salary filter disabled: Adzuna salary estimates for senior roles are unreliable
+# (same posting can show $176K one day and $329K the next). Filter by title instead.
+MIN_SALARY_USD      = 0
+HOURS_SINCE_POSTED  = 72          # Look back 3 days to avoid missing any postings
 MAX_JOBS_PER_QUERY  = 10          # Cap per search term to control API costs
 
 # ── Claude model ──────────────────────────────────────────────────────────────
