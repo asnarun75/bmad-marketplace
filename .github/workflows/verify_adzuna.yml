@@ -1,0 +1,54 @@
+name: Verify Adzuna Credentials
+
+on:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Test Adzuna API
+        env:
+          ADZUNA_APP_ID:  ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_API_KEY: ${{ secrets.ADZUNA_API_KEY }}
+        run: |
+          python3 - <<'EOF'
+          import os, requests, sys
+
+          app_id  = os.environ["ADZUNA_APP_ID"]
+          app_key = os.environ["ADZUNA_API_KEY"]
+
+          print(f"Testing Adzuna app_id={app_id[:4]}**** ...")
+          resp = requests.get(
+              "https://api.adzuna.com/v1/api/jobs/us/search/1",
+              params={
+                  "app_id": app_id, "app_key": app_key,
+                  "results_per_page": 3,
+                  "what": "Senior Director Technology",
+                  "where": "New York",
+              },
+              timeout=15,
+          )
+          print(f"HTTP {resp.status_code}")
+          if resp.status_code != 200:
+              print(f"FAILED: {resp.text[:300]}")
+              sys.exit(1)
+
+          data = resp.json()
+          count = data.get("count", 0)
+          print(f"SUCCESS — {count} total results available")
+          for job in data.get("results", []):
+              sal = job.get("salary_min")
+              sal_str = f"  ${sal:,.0f}+" if sal else ""
+              print(f"  • {job['title']} @ {job['company']['display_name']}{sal_str}")
+          EOF

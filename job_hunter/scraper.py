@@ -53,6 +53,13 @@ def search_jobs(query: str) -> list[dict]:
     url = f"{ADZUNA_BASE}/{region}/search/1"
     try:
         resp = requests.get(url, params=params, timeout=15)
+        if resp.status_code == 403:
+            log.error(
+                "Adzuna API blocked (403). If running locally, this is expected — "
+                "cloud container IPs are blocked. Run via GitHub Actions instead. "
+                "Response: %s", resp.text[:200]
+            )
+            return []
         resp.raise_for_status()
         data = resp.json()
     except requests.RequestException as exc:
