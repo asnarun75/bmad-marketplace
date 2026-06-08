@@ -28,11 +28,21 @@ USER_TEMPLATE = """## Master Resume
 ---
 
 ## Task
-1. Identify the top 5 hard skills and top 3 soft skills in the job description.
-2. Rewrite the Professional Summary (3–4 sentences) to mirror those skills exactly.
-3. Reorder experience bullet points to highlight the most relevant work first.
-4. Add a "Key Skills Match" section at the top listing the exact keywords from the JD that appear in this resume.
-5. Output the complete tailored resume in Markdown.
+Internally identify the top skills required by this job description, then produce a tailored resume.
+The output must be a COMPLETE, READY-TO-SEND resume with ONLY these sections in this order:
+
+1. Candidate name and contact line
+2. Professional Summary (3–4 sentences, rewritten to mirror the JD's exact language and priorities)
+3. Signature Impact (keep the 4 bullet metrics exactly as-is)
+4. Core Capabilities (reorder and reword to front-load the most JD-relevant skills)
+5. Professional Experience (reorder bullet points to surface the most relevant work first)
+6. AI & Innovation
+7. Education
+8. Skills
+
+DO NOT include any analysis, commentary, skills-match tables, internal notes, or section headers
+that would not appear on a real resume submitted to an employer.
+Output ONLY the resume — no preamble, no explanation, no closing remarks.
 """
 
 

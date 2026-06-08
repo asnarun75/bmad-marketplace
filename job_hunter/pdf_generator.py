@@ -1,129 +1,149 @@
 """
-Converts a tailored markdown resume into a clean, ATS-ready PDF.
-Uses weasyprint (HTML/CSS → PDF) for professional formatting.
+Converts a tailored markdown resume into a clean, professional PDF.
+Designed to look like a real submitted resume, not a converted document.
 """
 
-import re
 from pathlib import Path
-
 import markdown2
 from weasyprint import HTML
 
 
 RESUME_CSS = """
 @page {
-    margin: 0.7in 0.75in 0.7in 0.75in;
+    margin: 0.65in 0.7in 0.65in 0.7in;
     size: letter;
 }
 
+* { box-sizing: border-box; }
+
 body {
-    font-family: "Arial", "Helvetica Neue", Helvetica, sans-serif;
+    font-family: "Calibri", "Georgia", serif;
     font-size: 10.5pt;
-    line-height: 1.45;
+    line-height: 1.4;
     color: #1a1a1a;
+    margin: 0;
+    padding: 0;
 }
 
-/* Name / title line at the top */
+/* ── Name (h1) ─────────────────────────────────────────── */
 h1 {
-    font-size: 20pt;
+    font-family: "Calibri", "Arial", sans-serif;
+    font-size: 22pt;
     font-weight: 700;
-    color: #0a2342;
-    margin: 0 0 2px 0;
-    letter-spacing: 0.5px;
-    border-bottom: 2.5px solid #0a2342;
-    padding-bottom: 4px;
+    color: #1a1a1a;
+    text-align: center;
+    margin: 0 0 3px 0;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border: none;
 }
 
-/* Contact line (italicised paragraph right after h1) */
+/* ── Contact line (paragraph immediately after h1) ─────── */
 h1 + p {
+    text-align: center;
     font-size: 9.5pt;
     color: #444;
-    margin: 3px 0 12px 0;
+    margin: 0 0 10px 0;
+    border-bottom: 1.5px solid #1a1a1a;
+    padding-bottom: 7px;
 }
 
-/* Section headers */
+/* ── Section headers (h2) ──────────────────────────────── */
 h2 {
-    font-size: 11pt;
+    font-family: "Calibri", "Arial", sans-serif;
+    font-size: 10pt;
     font-weight: 700;
-    color: #0a2342;
+    color: #1a1a1a;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin: 14px 0 4px 0;
-    border-bottom: 1px solid #b0bec5;
-    padding-bottom: 2px;
+    letter-spacing: 1px;
+    margin: 11px 0 3px 0;
+    border-bottom: 1px solid #1a1a1a;
+    padding-bottom: 1px;
 }
 
-/* Role / company headers */
+/* ── Role / company lines (h3) ─────────────────────────── */
 h3 {
     font-size: 10.5pt;
     font-weight: 700;
     color: #1a1a1a;
-    margin: 8px 0 2px 0;
+    margin: 7px 0 1px 0;
 }
 
-/* Bullet points */
+/* ── Bullet points ─────────────────────────────────────── */
 ul {
-    margin: 3px 0 6px 0;
-    padding-left: 16px;
+    margin: 2px 0 5px 0;
+    padding-left: 15px;
 }
 
 li {
     margin-bottom: 2px;
+    line-height: 1.4;
 }
 
-/* Key skills match section — highlight box */
-h2:first-of-type + p,
-p strong {
-    color: #0a2342;
-}
-
-/* Horizontal rule */
-hr {
+/* ── Inline code (used for skill tags — hide styling) ──── */
+code {
+    font-family: inherit;
+    font-size: inherit;
+    background: none;
     border: none;
-    border-top: 1px solid #ddd;
-    margin: 10px 0;
+    padding: 0;
 }
 
-/* Blockquote — instruction to Claude, hidden from output */
+/* ── Paragraphs ────────────────────────────────────────── */
+p {
+    margin: 3px 0;
+}
+
+/* ── Horizontal rules ──────────────────────────────────── */
+hr {
+    display: none;
+}
+
+/* ── Bold text ─────────────────────────────────────────── */
+strong {
+    color: #1a1a1a;
+}
+
+/* ── Hide blockquotes (Claude instruction notes) ───────── */
 blockquote {
     display: none;
 }
 
-/* Tables (impact metrics) */
+/* ── Tables ────────────────────────────────────────────── */
 table {
     width: 100%;
     border-collapse: collapse;
     font-size: 9.5pt;
-    margin: 6px 0;
+    margin: 4px 0;
 }
 td, th {
-    padding: 3px 8px;
-    border: 1px solid #ddd;
+    padding: 2px 6px;
+    border: 1px solid #ccc;
 }
 th {
-    background: #f0f4f8;
+    background: #f5f5f5;
     font-weight: 600;
 }
-
-p { margin: 4px 0; }
 """
 
 
-def _strip_front_matter(md: str) -> str:
-    """Remove the '# Tailored Resume — ...' heading line used as a filename hint."""
+def _clean_markdown(md: str) -> str:
     lines = md.splitlines()
+    # Drop any leading heading that starts with "# Tailored Resume"
     if lines and lines[0].startswith("# Tailored Resume"):
+        lines = lines[1:]
+    # Collapse leading blank lines
+    while lines and not lines[0].strip():
         lines = lines[1:]
     return "\n".join(lines)
 
 
 def markdown_to_pdf(markdown_content: str, output_path: str | Path) -> Path:
-    """Convert a tailored markdown resume to a PDF file."""
-    cleaned = _strip_front_matter(markdown_content)
+    cleaned = _clean_markdown(markdown_content)
 
     html_body = markdown2.markdown(
         cleaned,
-        extras=["tables", "fenced-code-blocks", "strike", "header-ids"],
+        extras=["tables", "fenced-code-blocks", "strike"],
     )
 
     full_html = f"""<!DOCTYPE html>
