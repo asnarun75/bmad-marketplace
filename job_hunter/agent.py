@@ -42,6 +42,7 @@ def run():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     new_jobs = 0
+    openai_quota_exceeded = False  # flip to True on first 429; skip all further calls
 
     for query in SEARCH_QUERIES:
         log.info("Searching: %s", query)
@@ -104,8 +105,8 @@ def run():
             except Exception as exc:
                 log.error("  Claude API error: %s", exc)
 
-            # ── OpenAI version (if key available) ─────────────────────────
-            if os.environ.get("OPENAI_API_KEY"):
+            # ── OpenAI version (if key available and quota not exhausted) ────
+            if os.environ.get("OPENAI_API_KEY") and not openai_quota_exceeded:
                 try:
                     oai_md = tailor_resume_openai(
                         master_resume=master_resume,
@@ -122,7 +123,11 @@ def run():
                         log.warning("  OpenAI PDF failed: %s", exc)
                     saved_any = True
                 except Exception as exc:
-                    log.error("  OpenAI API error: %s", exc)
+                    if "insufficient_quota" in str(exc) or "429" in str(exc):
+                        log.warning("  OpenAI quota exceeded — skipping OpenAI for all remaining jobs this run.")
+                        openai_quota_exceeded = True
+                    else:
+                        log.error("  OpenAI API error: %s", exc)
 
             if not saved_any:
                 continue
