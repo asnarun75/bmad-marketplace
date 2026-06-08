@@ -78,11 +78,12 @@ def run():
 
             log.info("  Tailoring resume → %s @ %s", title, company)
 
-            stem = (
-                f"{datetime.utcnow().strftime('%Y%m%d')}"
-                f"_{safe_filename(company)}"
-                f"_{safe_filename(title)}"
-            )
+            date_str     = datetime.utcnow().strftime("%Y-%m-%d")
+            company_safe = safe_filename(company)
+            title_safe   = safe_filename(title)
+
+            job_dir = output_dir / date_str / company_safe
+            job_dir.mkdir(parents=True, exist_ok=True)
 
             saved_any = False
 
@@ -93,12 +94,12 @@ def run():
                     job_title=title, company=company,
                     location=location, job_description=desc,
                 )
-                claude_md_path  = output_dir / f"{stem}_claude.md"
-                claude_pdf_path = output_dir / f"{stem}_claude.pdf"
+                claude_md_path  = job_dir / f"{title_safe}_claude.md"
+                claude_pdf_path = job_dir / f"{title_safe}_claude.pdf"
                 claude_md_path.write_text(claude_md, encoding="utf-8")
                 try:
                     markdown_to_pdf(claude_md, claude_pdf_path)
-                    log.info("  Claude PDF: %s", claude_pdf_path.name)
+                    log.info("  Claude PDF: %s/%s/%s", date_str, company_safe, claude_pdf_path.name)
                 except Exception as exc:
                     log.warning("  Claude PDF failed: %s", exc)
                 saved_any = True
@@ -113,12 +114,12 @@ def run():
                         job_title=title, company=company,
                         location=location, job_description=desc,
                     )
-                    oai_md_path  = output_dir / f"{stem}_openai.md"
-                    oai_pdf_path = output_dir / f"{stem}_openai.pdf"
+                    oai_md_path  = job_dir / f"{title_safe}_openai.md"
+                    oai_pdf_path = job_dir / f"{title_safe}_openai.pdf"
                     oai_md_path.write_text(oai_md, encoding="utf-8")
                     try:
                         markdown_to_pdf(oai_md, oai_pdf_path)
-                        log.info("  OpenAI PDF: %s", oai_pdf_path.name)
+                        log.info("  OpenAI PDF: %s/%s/%s", date_str, company_safe, oai_pdf_path.name)
                     except Exception as exc:
                         log.warning("  OpenAI PDF failed: %s", exc)
                     saved_any = True
@@ -139,9 +140,9 @@ def run():
                 location=location,
                 salary=f"{sal_min}-{job['salary_max']}",
                 url=url,
-                resume_file=stem,
+                resume_file=f"{date_str}/{company_safe}/{title_safe}",
             )
-            log.info("  Done: %s", stem)
+            log.info("  Done: %s/%s/%s", date_str, company_safe, title_safe)
             new_jobs += 1
 
     log.info("Done. Tailored %d new resume(s).", new_jobs)
