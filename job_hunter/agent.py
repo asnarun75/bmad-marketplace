@@ -6,6 +6,7 @@ Runs via:      .github/workflows/daily_job_hunt.yml (scheduled daily)
 """
 
 import logging
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -13,7 +14,7 @@ import re
 
 from job_hunter.config import SEARCH_QUERIES, MIN_SALARY_USD, OUTPUT_DIR
 from job_hunter.scraper import search_jobs
-from job_hunter.resume_tailor import tailor_resume
+from job_hunter.resume_tailor import tailor_resume_claude, tailor_resume_openai
 from job_hunter.tracker import already_tracked, record_job
 from job_hunter.pdf_generator import markdown_to_pdf
 
@@ -75,33 +76,56 @@ def run():
                 continue
 
             log.info("  Tailoring resume → %s @ %s", title, company)
-            try:
-                tailored = tailor_resume(
-                    master_resume=master_resume,
-                    job_title=title,
-                    company=company,
-                    location=location,
-                    job_description=desc,
-                )
-            except Exception as exc:
-                log.error("  Claude API error: %s", exc)
-                continue
 
             stem = (
                 f"{datetime.utcnow().strftime('%Y%m%d')}"
                 f"_{safe_filename(company)}"
                 f"_{safe_filename(title)}"
             )
-            md_path  = output_dir / f"{stem}.md"
-            pdf_path = output_dir / f"{stem}.pdf"
 
-            md_path.write_text(tailored, encoding="utf-8")
+            saved_any = False
 
+            # ── Claude version ────────────────────────────────────────────
             try:
-                markdown_to_pdf(tailored, pdf_path)
-                log.info("  Saved PDF: %s", pdf_path.name)
+                claude_md = tailor_resume_claude(
+                    master_resume=master_resume,
+                    job_title=title, company=company,
+                    location=location, job_description=desc,
+                )
+                claude_md_path  = output_dir / f"{stem}_claude.md"
+                claude_pdf_path = output_dir / f"{stem}_claude.pdf"
+                claude_md_path.write_text(claude_md, encoding="utf-8")
+                try:
+                    markdown_to_pdf(claude_md, claude_pdf_path)
+                    log.info("  Claude PDF: %s", claude_pdf_path.name)
+                except Exception as exc:
+                    log.warning("  Claude PDF failed: %s", exc)
+                saved_any = True
             except Exception as exc:
-                log.warning("  PDF generation failed (md still saved): %s", exc)
+                log.error("  Claude API error: %s", exc)
+
+            # ── OpenAI version (if key available) ─────────────────────────
+            if os.environ.get("OPENAI_API_KEY"):
+                try:
+                    oai_md = tailor_resume_openai(
+                        master_resume=master_resume,
+                        job_title=title, company=company,
+                        location=location, job_description=desc,
+                    )
+                    oai_md_path  = output_dir / f"{stem}_openai.md"
+                    oai_pdf_path = output_dir / f"{stem}_openai.pdf"
+                    oai_md_path.write_text(oai_md, encoding="utf-8")
+                    try:
+                        markdown_to_pdf(oai_md, oai_pdf_path)
+                        log.info("  OpenAI PDF: %s", oai_pdf_path.name)
+                    except Exception as exc:
+                        log.warning("  OpenAI PDF failed: %s", exc)
+                    saved_any = True
+                except Exception as exc:
+                    log.error("  OpenAI API error: %s", exc)
+
+            if not saved_any:
+                continue
 
             record_job(
                 job_id=job_id,
@@ -110,9 +134,9 @@ def run():
                 location=location,
                 salary=f"{sal_min}-{job['salary_max']}",
                 url=url,
-                resume_file=str(pdf_path),
+                resume_file=stem,
             )
-            log.info("  Saved: %s", stem)
+            log.info("  Done: %s", stem)
             new_jobs += 1
 
     log.info("Done. Tailored %d new resume(s).", new_jobs)
