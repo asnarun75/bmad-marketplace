@@ -2,7 +2,7 @@ name: Daily Job Hunt
 
 on:
   schedule:
-    - cron: "0 8 * * *"   # 8:00 AM UTC every day
+    - cron: "0 11 * * *"   # 6:00 AM EST (11:00 AM UTC) every day
   workflow_dispatch:        # allow manual trigger from GitHub UI
 
 jobs:
@@ -19,7 +19,14 @@ jobs:
           python-version: "3.11"
           cache: pip
 
-      - name: Install dependencies
+      - name: Install system dependencies for PDF generation
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b \
+            libffi-dev libjpeg-dev libopenjp2-7
+
+      - name: Install Python dependencies
         run: pip install -r requirements.txt
 
       - name: Run job hunting agent

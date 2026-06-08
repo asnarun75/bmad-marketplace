@@ -15,6 +15,7 @@ from job_hunter.config import SEARCH_QUERIES, MIN_SALARY_USD, OUTPUT_DIR
 from job_hunter.scraper import search_jobs
 from job_hunter.resume_tailor import tailor_resume
 from job_hunter.tracker import already_tracked, record_job
+from job_hunter.pdf_generator import markdown_to_pdf
 
 logging.basicConfig(
     level=logging.INFO,
@@ -86,13 +87,21 @@ def run():
                 log.error("  Claude API error: %s", exc)
                 continue
 
-            fname = (
+            stem = (
                 f"{datetime.utcnow().strftime('%Y%m%d')}"
                 f"_{safe_filename(company)}"
-                f"_{safe_filename(title)}.md"
+                f"_{safe_filename(title)}"
             )
-            fpath = output_dir / fname
-            fpath.write_text(tailored, encoding="utf-8")
+            md_path  = output_dir / f"{stem}.md"
+            pdf_path = output_dir / f"{stem}.pdf"
+
+            md_path.write_text(tailored, encoding="utf-8")
+
+            try:
+                markdown_to_pdf(tailored, pdf_path)
+                log.info("  Saved PDF: %s", pdf_path.name)
+            except Exception as exc:
+                log.warning("  PDF generation failed (md still saved): %s", exc)
 
             record_job(
                 job_id=job_id,
@@ -101,9 +110,9 @@ def run():
                 location=location,
                 salary=f"{sal_min}-{job['salary_max']}",
                 url=url,
-                resume_file=str(fpath),
+                resume_file=str(pdf_path),
             )
-            log.info("  Saved: %s", fname)
+            log.info("  Saved: %s", stem)
             new_jobs += 1
 
     log.info("Done. Tailored %d new resume(s).", new_jobs)
