@@ -133,6 +133,34 @@ def run():
             if not saved_any:
                 continue
 
+            sal_display = f"${sal_min:,.0f}" if sal_min else "not listed"
+
+            # ── Job info file (URL + details beside every PDF) ────────────
+            info_path = job_dir / f"{title_safe}_info.txt"
+            info_path.write_text(
+                f"Title:    {title}\n"
+                f"Company:  {company}\n"
+                f"Location: {location}\n"
+                f"Salary:   {sal_display}\n"
+                f"Apply:    {url}\n"
+                f"Date:     {date_str}\n",
+                encoding="utf-8",
+            )
+
+            # ── Per-day JOBS.md index (one row per job) ───────────────────
+            jobs_index = output_dir / date_str / "JOBS.md"
+            if not jobs_index.exists():
+                jobs_index.write_text(
+                    f"# Jobs — {date_str}\n\n"
+                    "| Company | Title | Location | Salary | Apply |\n"
+                    "|---------|-------|----------|--------|-------|\n",
+                    encoding="utf-8",
+                )
+            with jobs_index.open("a", encoding="utf-8") as f:
+                f.write(
+                    f"| {company} | {title} | {location} | {sal_display} | [Apply]({url}) |\n"
+                )
+
             record_job(
                 job_id=job_id,
                 title=title,
