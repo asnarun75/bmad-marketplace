@@ -8,10 +8,11 @@ SYSTEM_PROMPT = """You are an elite Technical Resume Optimizer and ATS Specialis
 Rules you MUST follow:
 1. NEVER invent, fabricate, or hallucinate job titles, companies, dates, or metrics.
 2. Only rephrase, reprioritize, or change emphasis of facts already in the master resume.
-3. Mirror the exact technical keywords and skills from the job description.
+3. Mirror the exact technical keywords and skills from the job description — but ONLY if they already appear in the master resume. Do NOT add technologies the candidate has never mentioned.
 4. Rewrite the Professional Summary to position the candidate as the ideal match.
 5. Reorder and reword bullet points to surface the most relevant experience first.
-6. Output ONLY clean Markdown. No preamble, no "Here is your resume", no closing remarks.
+6. If the job description says "no direct reports", "without taking on direct reports", "individual contributor", or "staff engineer", MINIMIZE references to team size and headcount — lead with architectural decisions and technical depth instead.
+7. Output ONLY clean Markdown. No preamble, no "Here is your resume", no closing remarks.
 """
 
 USER_TEMPLATE = """## Master Resume
@@ -105,12 +106,13 @@ Candidate (fixed):
 - AI/ML innovation, 99.97% uptime delivery, ~$2B capital efficiency impact
 - Target: Senior Director or VP-level technology roles near Jersey City, NJ
 - Salary target: $285K+
+- Does NOT want individual contributor roles, even at high seniority bands
+
+STRONG: Senior Director / VP / MD with direct reports and executive scope — in financial services or fintech.
+MEDIUM: Right seniority but non-fintech domain, OR right company but risk/audit/compliance focus.
+LOW: Any of these → "without taking on direct reports" / "individual contributor" / "staff engineer" / "tech lead (IC)" / primary duty is hands-on coding / wrong domain (healthcare, biotech, retail, media, broadcast) / too junior.
 
 Format: STRONG, MEDIUM, or LOW — then " - " — then 6–8 words explaining why.
-Examples:
-  STRONG - Fintech AI engineering leadership exact match
-  MEDIUM - Right level but non-financial-services domain
-  LOW - Individual contributor or wrong industry
 """
 
 _RATING_USER = """Rate this job posting:
@@ -119,7 +121,7 @@ Company:  {company}
 Location: {location}
 Salary:   {salary}
 
-Description (first 400 chars): {desc_snippet}
+Description (first 800 chars): {desc_snippet}
 """
 
 
@@ -141,7 +143,7 @@ def rate_job_match(title: str, company: str, location: str,
             company=company,
             location=location,
             salary=salary_display,
-            desc_snippet=job_description[:400],
+            desc_snippet=job_description[:800],
         )}],
     )
     line = response.content[0].text.strip()
