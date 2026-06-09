@@ -14,7 +14,7 @@ import re
 
 from job_hunter.config import SEARCH_QUERIES, MIN_SALARY_USD, OUTPUT_DIR
 from job_hunter.scraper import search_jobs
-from job_hunter.resume_tailor import tailor_resume_claude, tailor_resume_openai
+from job_hunter.resume_tailor import tailor_resume_claude, tailor_resume_openai, rate_job_match
 from job_hunter.tracker import already_tracked, record_job
 from job_hunter.pdf_generator import markdown_to_pdf
 
@@ -76,15 +76,24 @@ def run():
                          f"{sal_min:,.0f}", f"{MIN_SALARY_USD:,.0f}", title, company)
                 continue
 
-            log.info("  Tailoring resume → %s @ %s", title, company)
-
             date_str     = datetime.utcnow().strftime("%Y-%m-%d")
             company_safe = safe_filename(company)
             title_safe   = safe_filename(title)
+            sal_display  = f"${sal_min:,.0f}" if sal_min else "not listed"
+
+            # ── Rate match strength before tailoring ──────────────────────
+            rating, reason = rate_job_match(title, company, location, sal_display, desc)
+            log.info("  [%s] %s @ %s — %s", rating, title, company, reason)
 
             job_dir = output_dir / date_str / company_safe
             job_dir.mkdir(parents=True, exist_ok=True)
 
+            # Flag file: name = rating so it's visible in folder view
+            safe_reason = re.sub(r'[\\/:*?"<>|]', "-", reason)
+            flag_name = f"{rating} - {safe_reason}.flag"
+            (job_dir / flag_name).write_text("", encoding="utf-8")
+
+            log.info("  Tailoring resume → %s @ %s", title, company)
             saved_any = False
 
             # ── Claude version ────────────────────────────────────────────
@@ -133,8 +142,6 @@ def run():
             if not saved_any:
                 continue
 
-            sal_display = f"${sal_min:,.0f}" if sal_min else "not listed"
-
             # ── Job info file (URL + details beside every PDF) ────────────
             info_path = job_dir / f"{title_safe}_info.txt"
             info_path.write_text(
@@ -152,13 +159,13 @@ def run():
             if not jobs_index.exists():
                 jobs_index.write_text(
                     f"# Jobs — {date_str}\n\n"
-                    "| Company | Title | Location | Salary | Apply |\n"
-                    "|---------|-------|----------|--------|-------|\n",
+                    "| Match | Company | Title | Location | Salary | Apply |\n"
+                    "|-------|---------|-------|----------|--------|-------|\n",
                     encoding="utf-8",
                 )
             with jobs_index.open("a", encoding="utf-8") as f:
                 f.write(
-                    f"| {company} | {title} | {location} | {sal_display} | [Apply]({url}) |\n"
+                    f"| **{rating}** | {company} | {title} | {location} | {sal_display} | [Apply]({url}) |\n"
                 )
 
             record_job(

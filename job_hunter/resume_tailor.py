@@ -96,6 +96,65 @@ def tailor_resume_openai(master_resume: str, job_title: str, company: str,
     return response.choices[0].message.content
 
 
+_RATING_SYSTEM = """You rate job postings for a specific candidate. Reply with EXACTLY one line.
+
+Candidate (fixed):
+- Senior technology executive, 15+ years in financial services
+- Director of Technology at Bank of America (current), previously VP
+- Led 30+ engineers, $8M transformation programs, capital markets systems
+- AI/ML innovation, 99.97% uptime delivery, ~$2B capital efficiency impact
+- Target: Senior Director or VP-level technology roles near Jersey City, NJ
+- Salary target: $285K+
+
+Format: STRONG, MEDIUM, or LOW — then " - " — then 6–8 words explaining why.
+Examples:
+  STRONG - Fintech AI engineering leadership exact match
+  MEDIUM - Right level but non-financial-services domain
+  LOW - Individual contributor or wrong industry
+"""
+
+_RATING_USER = """Rate this job posting:
+Title:    {title}
+Company:  {company}
+Location: {location}
+Salary:   {salary}
+
+Description (first 400 chars): {desc_snippet}
+"""
+
+
+def rate_job_match(title: str, company: str, location: str,
+                   salary_display: str, job_description: str) -> tuple[str, str]:
+    """Return (rating, reason) where rating is STRONG / MEDIUM / LOW."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return "MEDIUM", "no API key for rating"
+
+    client = anthropic.Anthropic(api_key=api_key)
+    response = client.messages.create(
+        model=CLAUDE_MODEL,
+        max_tokens=60,
+        temperature=0,
+        system=_RATING_SYSTEM,
+        messages=[{"role": "user", "content": _RATING_USER.format(
+            title=title,
+            company=company,
+            location=location,
+            salary=salary_display,
+            desc_snippet=job_description[:400],
+        )}],
+    )
+    line = response.content[0].text.strip()
+    if " - " in line:
+        rating, reason = line.split(" - ", 1)
+        rating = rating.strip().upper()
+    else:
+        rating, reason = line.strip().upper(), "see job description"
+    if rating not in ("STRONG", "MEDIUM", "LOW"):
+        rating = "MEDIUM"
+    return rating, reason.strip()
+
+
 # Convenience wrapper — kept for backward compatibility
 def tailor_resume(master_resume: str, job_title: str, company: str,
                   location: str, job_description: str) -> str:
