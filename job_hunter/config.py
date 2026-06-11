@@ -8,17 +8,18 @@ COUNTRY  = "US"
 MAX_COMMUTE_MINUTES = 45
 
 # ── Target roles ──────────────────────────────────────────────────────────────
+# These run against JOB TITLE only (Adzuna title_only=1) so keep them concise.
+# JSearch also uses these as queries but ranks by relevance.
 SEARCH_QUERIES = [
     "Senior Director Technology",
     "Senior Director Engineering",
-    "VP Technology Financial Services",
-    "VP Engineering",
-    "Director of Technology",
+    "VP Technology",
+    "VP Engineering Financial",
     "Managing Director Technology",
-    "Head of Technology Banking",
-    "Chief Architect Financial Services",
-    "Director AI Technology",
-    "Technology Vice President",
+    "Head of Technology",
+    "Director Capital Markets Technology",
+    "Chief Technology Officer",
+    "VP Software Engineering",
 ]
 
 # ── Filters ───────────────────────────────────────────────────────────────────

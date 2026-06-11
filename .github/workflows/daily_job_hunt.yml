@@ -35,6 +35,7 @@ jobs:
           OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
           ADZUNA_APP_ID:     ${{ secrets.ADZUNA_APP_ID }}
           ADZUNA_API_KEY:    ${{ secrets.ADZUNA_API_KEY }}
+          JSEARCH_API_KEY:   ${{ secrets.JSEARCH_API_KEY }}
         run: python -m job_hunter.agent
 
       - name: Commit tailored resumes
