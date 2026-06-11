@@ -1,0 +1,18 @@
+# Jobs — 2026-06-10
+
+| Match | Company | Title | Location | Salary | Apply |
+|-------|---------|-------|----------|--------|-------|
+| **STRONG** | Mizuho | Treasury Technical Director | New York City, New York | $300,000 | [Apply](https://www.adzuna.com/details/5758007322?utm_medium=api&utm_source=0438d343) |
+| **LOW** | Google | VP, Product, Engineering and UX, Google for Education | Grand Central, Manhattan | $265,943 | [Apply](https://www.adzuna.com/land/ad/5757922938?se=trdMxddk8RGnkLO2weSzww&utm_medium=api&utm_source=0438d343&v=93498EB750141B3D48895D21E0019C963EE3A4FC) |
+| **LOW** | Data Direct Networks | Senior Data / AI Application Engineer | Canal Street, Manhattan | $229,165 | [Apply](https://www.adzuna.com/details/5757048114?utm_medium=api&utm_source=0438d343) |
+| **LOW** | MSD | Director, Chemical Technical Operations, North America External Manufacturing | Rahway, Union County | $173,200 | [Apply](https://www.adzuna.com/details/5758418947?utm_medium=api&utm_source=0438d343) |
+| **LOW** | Genesis10 | Executive Director - Front Office Technology Business Management | Grand Central, Manhattan | $252,248 | [Apply](https://www.adzuna.com/land/ad/5758376971?se=HDF86Ndk8RG7pffrf3WC9Q&utm_medium=api&utm_source=0438d343&v=B49C0669AEE27E2FBBD1B6E3A3271699D8598085) |
+| **LOW** | NewYork-Presbyterian | Program Director Resilience and Business Continuity | Manhattan, New York City | $182,816 | [Apply](https://www.adzuna.com/land/ad/5758286464?se=HDF86Ndk8RG7pffrf3WC9Q&utm_medium=api&utm_source=0438d343&v=52657696109B151CDD81ADCC09536D1800C8AC5F) |
+| **LOW** | NAPCO Security Technologies | Senior Buyer | Amityville, Suffolk County | $86,408 | [Apply](https://www.adzuna.com/land/ad/5758250265?se=HDF86Ndk8RG7pffrf3WC9Q&utm_medium=api&utm_source=0438d343&v=929BB22092F8C33AD892D28D3B8CA7E1F7C8B77E) |
+| **LOW** | Visionet Systems Inc. | Digital Architect | Cranbury, Middlesex County | $175,461 | [Apply](https://www.adzuna.com/land/ad/5758237220?se=HDF86Ndk8RG7pffrf3WC9Q&utm_medium=api&utm_source=0438d343&v=02341B223815ED25B5B3FCEEC74841E5DBC6AEC4) |
+| **LOW** | J&J Family of Companies | Sr. Director, Security & Defense, Orthopedics | New Brunswick, Middlesex County | $250,054 | [Apply](https://www.adzuna.com/land/ad/5757955763?se=HDF86Ndk8RG7pffrf3WC9Q&utm_medium=api&utm_source=0438d343&v=FD8EA10C43023B6BC4A68BA4EBC3DC19AD97695A) |
+| **LOW** | Merck | Director, Chemical Technical Operations, North America External Manufacturing | Rahway, Union County | $234,178 | [Apply](https://www.adzuna.com/land/ad/5757955660?se=HDF86Ndk8RG7pffrf3WC9Q&utm_medium=api&utm_source=0438d343&v=76C904F16EA42C5D7C4DF9C7A9F145D8ED95C9F9) |
+| **MEDIUM** | Wells Fargo | Technology Director - Technology Resiliency | Iselin, Middlesex County | $251,482 | [Apply](https://www.adzuna.com/land/ad/5757955645?se=HDF86Ndk8RG7pffrf3WC9Q&utm_medium=api&utm_source=0438d343&v=3BAD4C81C375B0D1C8595BDBD7861140B215FCC5) |
+| **LOW** | EY | Lead Negotiator, Associate Director - Technology Services | Iselin, Middlesex County | $225,317 | [Apply](https://www.adzuna.com/land/ad/5757955595?se=HDF86Ndk8RG7pffrf3WC9Q&utm_medium=api&utm_source=0438d343&v=CA32957A07B8474F8C9DE28CBCB25DFFF10403E9) |
+| **LOW** | Grant Thornton | AI, Data & Technology - AI-ML Director | Grand Central, Manhattan | $161,002 | [Apply](https://www.adzuna.com/land/ad/5757922965?se=6hO0cthk8RG7pffrf3WC9Q&utm_medium=api&utm_source=0438d343&v=218FB2012A3541B73D332B196F754EB31AD27675) |
+| **LOW** | BNY Mellon | Senior Vice President, Audit Leader, Technology, Data & Model Audit | Bowling Green, Manhattan | $134,615 | [Apply](https://www.adzuna.com/details/5758318105?utm_medium=api&utm_source=0438d343) |
