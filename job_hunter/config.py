@@ -8,25 +8,22 @@ COUNTRY  = "US"
 MAX_COMMUTE_MINUTES = 45
 
 # ── Target roles ──────────────────────────────────────────────────────────────
-# These run against JOB TITLE only (Adzuna title_only=1) so keep them concise.
-# JSearch also uses these as queries but ranks by relevance.
+# Keep to 6 queries: 6 × 30 days = 180 JSearch calls/month (free tier cap: 200).
+# Adzuna uses what_or + title_only so shorter phrases yield more hits.
 SEARCH_QUERIES = [
-    "Senior Director Technology",
-    "Senior Director Engineering",
     "VP Technology",
-    "VP Engineering Financial",
+    "VP Engineering",
+    "Senior Director Technology",
     "Managing Director Technology",
     "Head of Technology",
-    "Director Capital Markets Technology",
     "Chief Technology Officer",
-    "VP Software Engineering",
 ]
 
 # ── Filters ───────────────────────────────────────────────────────────────────
 # Salary filter disabled: Adzuna salary estimates for senior roles are unreliable
 # (same posting can show $176K one day and $329K the next). Filter by title instead.
 MIN_SALARY_USD      = 0
-HOURS_SINCE_POSTED  = 72          # Look back 3 days to avoid missing any postings
+HOURS_SINCE_POSTED  = 168         # 7-day lookback — scraper enforces minimum 7 days
 MAX_JOBS_PER_QUERY  = 10          # Cap per search term to control API costs
 
 # ── Claude model ──────────────────────────────────────────────────────────────
