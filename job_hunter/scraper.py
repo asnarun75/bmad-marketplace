@@ -78,9 +78,10 @@ def _search_adzuna(query: str) -> list[dict]:
         "app_id":           app_id,
         "app_key":          app_key,
         "results_per_page": MAX_JOBS_PER_QUERY,
-        "what_or":          query,      # ANY keyword must appear in title (was: what_and which required ALL)
+        "what_or":          query,      # ANY keyword must appear in title
         "title_only":       1,          # restrict match to JOB TITLE only
-        "category":         "it-jobs",  # IT category only
+        # No category filter — senior tech exec roles are often listed under Management/Finance,
+        # not "it-jobs". Domain filtering is handled by the seniority post-filter + Claude rating.
         "where":            "New York", # NYC metro — more postings than "Jersey City"; distance=50 covers NJ
         "distance":         50,
         "max_days_old":     cutoff_days,
@@ -100,8 +101,9 @@ def _search_adzuna(query: str) -> list[dict]:
         log.warning("Adzuna request failed for '%s': %s", query, exc)
         return []
 
+    raw_results = data.get("results", [])
     jobs = []
-    for item in data.get("results", []):
+    for item in raw_results:
         title = item.get("title", "")
         # Post-filter: title must contain a seniority marker (what_or can return broad matches)
         if not _has_seniority(title):
@@ -117,6 +119,7 @@ def _search_adzuna(query: str) -> list[dict]:
             salary_max  = item.get("salary_max") or 0,
             date_posted = item.get("created", ""),
         ))
+    log.info("  Adzuna '%s': %d raw → %d after seniority filter", query, len(raw_results), len(jobs))
     return jobs
 
 
