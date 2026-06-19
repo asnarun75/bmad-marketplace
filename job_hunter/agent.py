@@ -90,7 +90,14 @@ def _process_job(job: dict, master_resume: str, output_dir: Path,
     title_safe   = safe_filename(title)
     sal_display  = f"${sal_min:,.0f}" if sal_min else "not listed"
 
-    rating, reason = rate_job_match(title, company, location, sal_display, desc)
+    try:
+        rating, reason = rate_job_match(title, company, location, sal_display, desc)
+    except Exception as exc:
+        # Transient API error (529 overload, network blip, etc.) — skip this job
+        # without recording it so it will be retried on the next run.
+        log.warning("  rate_job_match failed for '%s @ %s': %s — will retry next run",
+                    title, company, exc)
+        return False, openai_quota_exceeded
     log.info("  [%s] %s @ %s — %s", rating, title, company, reason)
 
     # Record LOW-rated jobs as seen so we don't reprocess them, but skip tailoring.
@@ -207,17 +214,23 @@ def run():
             continue
         log.info("  Found %d listings.", len(jobs))
         for job in jobs:
+            try:
+                tailored, openai_quota_exceeded = _process_job(
+                    job, master_resume, output_dir, openai_quota_exceeded)
+                if tailored:
+                    new_jobs += 1
+            except Exception as exc:
+                log.error("  Unexpected error on job %s: %s", job.get("job_id", "?"), exc)
+
+    # ── Process manually-injected jobs (incoming_jobs.json) ────────────────
+    for job in _load_incoming_jobs():
+        try:
             tailored, openai_quota_exceeded = _process_job(
                 job, master_resume, output_dir, openai_quota_exceeded)
             if tailored:
                 new_jobs += 1
-
-    # ── Process manually-injected jobs (incoming_jobs.json) ────────────────
-    for job in _load_incoming_jobs():
-        tailored, openai_quota_exceeded = _process_job(
-            job, master_resume, output_dir, openai_quota_exceeded)
-        if tailored:
-            new_jobs += 1
+        except Exception as exc:
+            log.error("  Unexpected error on job %s: %s", job.get("job_id", "?"), exc)
 
     log.info("Done. Tailored %d new resume(s).", new_jobs)
     return new_jobs
