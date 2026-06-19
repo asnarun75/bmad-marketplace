@@ -105,9 +105,6 @@ def _search_adzuna(query: str) -> list[dict]:
     jobs = []
     for item in raw_results:
         title = item.get("title", "")
-        # Post-filter: title must contain a seniority marker (what_or can return broad matches)
-        if not _has_seniority(title):
-            continue
         jobs.append(_job(
             job_id      = item.get("id", ""),
             title       = title,
@@ -119,7 +116,7 @@ def _search_adzuna(query: str) -> list[dict]:
             salary_max  = item.get("salary_max") or 0,
             date_posted = item.get("created", ""),
         ))
-    log.info("  Adzuna '%s': %d raw → %d after seniority filter", query, len(raw_results), len(jobs))
+    log.info("  Adzuna '%s': %d results", query, len(jobs))
     return jobs
 
 

@@ -85,6 +85,16 @@ def run():
             rating, reason = rate_job_match(title, company, location, sal_display, desc)
             log.info("  [%s] %s @ %s — %s", rating, title, company, reason)
 
+            # Record LOW-rated jobs as seen so we don't reprocess them tomorrow,
+            # but skip the expensive tailoring step entirely.
+            if rating == "LOW":
+                record_job(
+                    job_id=job_id, title=title, company=company,
+                    location=location, salary=f"{sal_min}-{job['salary_max']}",
+                    url=url, resume_file="",
+                )
+                continue
+
             job_dir = output_dir / date_str / company_safe
             job_dir.mkdir(parents=True, exist_ok=True)
 
