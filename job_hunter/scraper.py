@@ -78,11 +78,13 @@ def _search_adzuna(query: str) -> list[dict]:
         "app_id":           app_id,
         "app_key":          app_key,
         "results_per_page": MAX_JOBS_PER_QUERY,
-        "what_or":          query,      # ANY keyword must appear in title
-        "title_only":       1,          # restrict match to JOB TITLE only
-        # No category filter — senior tech exec roles are often listed under Management/Finance,
-        # not "it-jobs". Domain filtering is handled by the seniority post-filter + Claude rating.
-        "where":            "New York", # NYC metro — more postings than "Jersey City"; distance=50 covers NJ
+        "what_and":         query,      # ALL keywords must appear somewhere in the posting
+        # No title_only — without it, words match title+description, which is how
+        # "Senior Director Technology" finds "Senior Director of Software Engineering"
+        # roles whose descriptions mention the Technology domain. title_only=1 caused
+        # zero results because multi-word exec titles rarely match all words exactly.
+        "category":         "it-jobs",  # IT category blocks healthcare/education/facilities noise
+        "where":            "New York", # NYC metro; distance=50 covers all of NJ
         "distance":         50,
         "max_days_old":     cutoff_days,
         "content-type":     "application/json",
